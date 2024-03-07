@@ -55,7 +55,7 @@ class NonExistentReqError(InvalidReqFileError):
 
     code = ErrorCode.NON_EXISTENT_REQ
 
-    def __init__(self, package_name: str, version: int):
+    def __init__(self, package_name: str, version: str):
         self._package_name = package_name
         self._version = version
 

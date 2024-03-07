@@ -1,49 +1,82 @@
-import abc
-from io import FileIO
+import asyncio
+import re
+from io import TextIOWrapper
 from typing import NamedTuple
 
+import aiohttp as aiohttp
 
-class _ValidatedReq(NamedTuple):
-    package: str
+from src import utils
+from src.exceptions import InvalidReqsFileFormatError, RepeatedReqError, NonExistentReqError
+
+
+class ValidatedReq(NamedTuple):
+    package_name: str
     version: str
 
 
-class ReqsInstaller(abc.ABC):
+class ReqsFileValidator:
 
-    def __init__(
-            self,
-            reqs_file: FileIO,
-            destination: str,
-    ):
+    def __init__(self, reqs_file: TextIOWrapper):
         self._reqs_file = reqs_file
-        self._destination = destination
 
-    @abc.abstractmethod
-    def install(self):
-        pass
-
-
-class SimpleReqsInstaller(ReqsInstaller):
-
-    def install(self):
-        validated_reqs = self._validate()
-        self._install(validated_reqs)
-
-    def _validate(self) -> set[_ValidatedReq]:
+    async def validate(self) -> set[ValidatedReq]:
         reqs = self._validate_reqs_file()
-        self._validate_reqs_existence_remote(reqs)
-        self._remove_locally_existing_req(reqs)
+        await self._validate_reqs_existence_remote(reqs)
         return reqs
 
-    def _validate_reqs_file(self) -> set[_ValidatedReq]:
-        pass
+    def _validate_reqs_file(self) -> set[ValidatedReq]:
+        validated_reqs = set()
+        package_names = set()
+        for index, line in enumerate(self._reqs_file.readlines()):
+            if line.startswith('#') or line == '\n':
+                continue
+
+            # empty string, comment or string of the form 'package==6.6.6'
+            regex = r'^$|^#.*|^[^=]+==\d+(\.\d+)*$'
+
+            if re.match(regex, line) is None:
+                raise InvalidReqsFileFormatError(index)
+
+            package_name, version = line.split('==')
+            if package_name in package_names:
+                raise RepeatedReqError(package_name)
+
+            validated_reqs.add(ValidatedReq(package_name, version))
+            package_names.add(package_name)
+
+        return validated_reqs
+
+    async def _validate_reqs_existence_remote(self, reqs: set[ValidatedReq]) -> None:
+        async with aiohttp.ClientSession() as session:
+            for req in reqs:
+                validation_tasks = [
+                    asyncio.create_task(
+                        self._validate_one_req_existence_remote(
+                            req,
+                            session
+                        )
+                    )
+                ]
+
+                try:
+                    await asyncio.gather(*validation_tasks)
+                finally:
+                    await utils.cancel_async_tasks(validation_tasks)
 
     @staticmethod
-    def _validate_reqs_existence_remote(reqs: set[_ValidatedReq]):
-        pass
+    async def _validate_one_req_existence_remote(
+            req: ValidatedReq,
+            session: aiohttp.ClientSession
+    ) -> None:
+        package_name, version = req
+        url = f'https://pypi.org/project/{package_name}/{version}/'
 
-    def _remove_locally_existing_req(self, reqs: set[_ValidatedReq]):
-        pass
+        async with session.get(url) as response:
+            if response.status != 200:
+                raise NonExistentReqError(package_name, version)
 
-    def _install(self, requirements: set[_ValidatedReq]):
+
+class ReqsInstaller:
+
+    def install(self) -> None:
         pass
