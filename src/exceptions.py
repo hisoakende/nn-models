@@ -60,5 +60,5 @@ class NonExistentReqError(InvalidReqFileError):
         self._version = version
 
     def __str__(self) -> str:
-        return f'The requirements file contains a non-existent requirement' \
+        return f'The requirements file contains a non-existent requirement ' \
                f'with the "{self._package_name}" name and "{self._version}" version'

@@ -1,11 +1,8 @@
-import asyncio
 import re
-from io import TextIOWrapper
-from typing import NamedTuple
+from typing import NamedTuple, TextIO
 
 import aiohttp as aiohttp
 
-from src import utils
 from src.exceptions import InvalidReqsFileFormatError, RepeatedReqError, NonExistentReqError
 
 
@@ -16,7 +13,7 @@ class ValidatedReq(NamedTuple):
 
 class ReqsFileValidator:
 
-    def __init__(self, reqs_file: TextIOWrapper):
+    def __init__(self, reqs_file: TextIO):
         self._reqs_file = reqs_file
 
     async def validate(self) -> set[ValidatedReq]:
@@ -35,7 +32,7 @@ class ReqsFileValidator:
             regex = r'^$|^#.*|^[^=]+==\d+(\.\d+)*$'
 
             if re.match(regex, line) is None:
-                raise InvalidReqsFileFormatError(index)
+                raise InvalidReqsFileFormatError(index + 1)
 
             package_name, version = line.split('==')
             if package_name in package_names:
@@ -49,19 +46,12 @@ class ReqsFileValidator:
     async def _validate_reqs_existence_remote(self, reqs: set[ValidatedReq]) -> None:
         async with aiohttp.ClientSession() as session:
             for req in reqs:
-                validation_tasks = [
-                    asyncio.create_task(
-                        self._validate_one_req_existence_remote(
-                            req,
-                            session
-                        )
-                    )
-                ]
-
-                try:
-                    await asyncio.gather(*validation_tasks)
-                finally:
-                    await utils.cancel_async_tasks(validation_tasks)
+                # Pypi doesn't handle many requests asynchronously,
+                # so it will be more efficient to send requests sequentially
+                await self._validate_one_req_existence_remote(
+                    req,
+                    session
+                )
 
     @staticmethod
     async def _validate_one_req_existence_remote(
@@ -70,7 +60,6 @@ class ReqsFileValidator:
     ) -> None:
         package_name, version = req
         url = f'https://pypi.org/project/{package_name}/{version}/'
-
         async with session.get(url) as response:
             if response.status != 200:
                 raise NonExistentReqError(package_name, version)
