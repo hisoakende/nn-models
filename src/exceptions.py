@@ -6,9 +6,10 @@ class ErrorCode(Enum):
     INVALID_REQS_FILE_FORMAT = 1
     REPEATED_REQ = 2
     NON_EXISTENT_REQ = 3
+    IMPOSSIBLE_INSTALL_REQS = 4
 
 
-class BusinessLogicException(Exception, abc.ABC):
+class _Exception(Exception, abc.ABC):
 
     @property
     @abc.abstractmethod
@@ -16,11 +17,19 @@ class BusinessLogicException(Exception, abc.ABC):
         pass
 
 
-class InputError(BusinessLogicException, abc.ABC):
+class InputError(_Exception, abc.ABC):
+    pass
+
+
+class InternalError(_Exception, abc.ABC):
     pass
 
 
 class InvalidReqFileError(InputError, abc.ABC):
+    pass
+
+
+class ReqsInstallationError(InternalError, abc.ABC):
     pass
 
 
@@ -62,3 +71,13 @@ class NonExistentReqError(InvalidReqFileError):
     def __str__(self) -> str:
         return f'The requirements file contains a non-existent requirement ' \
                f'with the "{self._package_name}" name and "{self._version}" version'
+
+
+class ImpossibleInstallReqsError(ReqsInstallationError):
+    """Requirements cannot be installed for internal reasons error"""
+
+    code = ErrorCode.IMPOSSIBLE_INSTALL_REQS
+
+    def __str__(self) -> str:
+        return 'Requirements cannot be established for technical reasons. ' \
+               'As soon as the problem is resolved, the requirements will be installed'
