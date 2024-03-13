@@ -128,10 +128,7 @@ class ReqsInstaller:
                     path
                 ])
 
-                if version == '4.10.0':
-                    raise subprocess.CalledProcessError
-
-        except (Exception, subprocess.CalledProcessError):
+        except subprocess.CalledProcessError:
             for _, _, path in self._reqs:
                 shutil.rmtree(path)
 
