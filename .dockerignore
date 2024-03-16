@@ -1,0 +1,17 @@
+**/__pycache__/
+*/*.pyc
+
+.git
+.gitignore
+.github
+
+venv
+
+.idea
+
+.mypy_cache
+
+README.md
+Dockerfile
+requirements-dev.txt
+.env
