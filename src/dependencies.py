@@ -6,7 +6,7 @@ from src.repositories import NNModelRepository
 from src.services import NNModelService
 
 
-def _get_nn_model_repo():
+def _get_nn_model_repo() -> NNModelRepository:
     return NNModelRepository()
 
 
