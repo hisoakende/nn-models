@@ -16,6 +16,8 @@ router = APIRouter(prefix='/api/models')
 )
 async def create_nn_model(
         nn_model_create: NNModelCreateRequest,
-        nn_model_service: Annotated[NNModelService, Depends(get_nn_model_service)]
+        nn_model_service: Annotated[
+            NNModelService, Depends(get_nn_model_service)
+        ]
 ) -> NNModelCreateResponse:
     return nn_model_service.create(nn_model_create)

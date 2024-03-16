@@ -34,7 +34,7 @@ class ReqsInstallationError(InternalError, abc.ABC):
 
 
 class InvalidReqsFileFormatError(InvalidReqFileError):
-    """Invalid format of requirements in the requirements file error"""
+    """Invalid format of requirements in the requirements file error."""
 
     code = ErrorCode.INVALID_REQS_FILE_FORMAT
 
@@ -42,12 +42,12 @@ class InvalidReqsFileFormatError(InvalidReqFileError):
         self._line_number = line_number
 
     def __str__(self) -> str:
-        return f'The requirements file contains an invalid ' \
-               f'line under the {self._line_number} number'
+        return f"""The requirements file contains an invalid
+                   line under the {self._line_number} number"""
 
 
 class RepeatedReqError(InvalidReqFileError):
-    """Repeated requirement in the requirements file error"""
+    """Repeated requirement in the requirements file error."""
 
     code = ErrorCode.REPEATED_REQ
 
@@ -55,12 +55,12 @@ class RepeatedReqError(InvalidReqFileError):
         self._package_name = package_name
 
     def __str__(self) -> str:
-        return f'The requirements file contains an repeated ' \
-               f'requirement with the "{self._package_name}" name'
+        return f"""The requirements file contains an repeated
+                   requirement with the "{self._package_name}" name"""
 
 
 class NonExistentReqError(InvalidReqFileError):
-    """Non-existent requirement in the requirements file error"""
+    """Non-existent requirement in the requirements file error."""
 
     code = ErrorCode.NON_EXISTENT_REQ
 
@@ -69,15 +69,19 @@ class NonExistentReqError(InvalidReqFileError):
         self._version = version
 
     def __str__(self) -> str:
-        return f'The requirements file contains a non-existent requirement ' \
-               f'with the "{self._package_name}" name and "{self._version}" version'
+        return f"""The requirements file contains
+                   a non-existent requirement
+                   with the "{self._package_name}" name
+                   and "{self._version}" version"""
 
 
 class ImpossibleInstallReqsError(ReqsInstallationError):
-    """Requirements cannot be installed for internal reasons error"""
+    """Requirements cannot be installed for internal reasons error."""
 
     code = ErrorCode.IMPOSSIBLE_INSTALL_REQS
 
     def __str__(self) -> str:
-        return 'Requirements cannot be established for technical reasons. ' \
-               'As soon as the problem is resolved, the requirements will be installed'
+        return """Requirements cannot be established
+                  for technical reasons. As soon
+                  as the problem is resolved,
+                  the requirements will be installed"""

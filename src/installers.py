@@ -4,12 +4,13 @@ import re
 import shutil
 import subprocess
 import sys
-from typing import NamedTuple, TextIO, Iterable
+from typing import Iterable, NamedTuple, TextIO
 
 import aiohttp as aiohttp
 
 from src.exceptions import (
-    InvalidReqsFileFormatError, RepeatedReqError, NonExistentReqError, ImpossibleInstallReqsError
+    ImpossibleInstallReqsError, InvalidReqsFileFormatError,
+    NonExistentReqError, RepeatedReqError
 )
 
 
@@ -56,7 +57,10 @@ class ReqsFileValidator:
 
         return validated_reqs
 
-    async def _validate_reqs_existence_remote(self, reqs: Iterable[ValidatedReq]) -> None:
+    async def _validate_reqs_existence_remote(
+            self,
+            reqs: Iterable[ValidatedReq]
+    ) -> None:
         async with aiohttp.ClientSession() as session:
             for req in reqs:
                 # Pypi doesn't handle many requests asynchronously,

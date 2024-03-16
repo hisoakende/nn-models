@@ -8,7 +8,10 @@ class NNModelService:
     def __init__(self, nn_model_repo: NNModelRepository):
         self._nn_model_repo = nn_model_repo
 
-    def create(self, nn_model_create: NNModelCreateRequest) -> NNModelCreateResponse:
+    def create(
+            self,
+            nn_model_create: NNModelCreateRequest
+    ) -> NNModelCreateResponse:
         nn_model = NNModel(
             name=nn_model_create.name,
             description=nn_model_create.description,
