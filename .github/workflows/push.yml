@@ -1,4 +1,4 @@
-name: workflow on push to main develop
+name: workflow on push to main or develop
 on:
   push:
     branches:
